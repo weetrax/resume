@@ -1,17 +1,16 @@
+import { useEffect, useState } from "react";
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
-
-import appCss from "../styles.css?url";
 import { Navbar } from "@/components/navbar";
-
 import {
   AnimatedSpan,
   Terminal,
   TypingAnimation,
 } from "@/components/ui/terminal";
-import { useEffect, useState } from "react";
 import { SmoothCursor } from "@/components/ui/smooth-cursor";
+import { motion } from "framer-motion";
+import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -61,10 +60,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {loading ? (
           <LoadingScreen />
         ) : (
-          <>
+          <motion.div
+            initial={{ opacity: 0 }} // état au départ
+            animate={{ opacity: 1 }} // état final
+            transition={{ duration: 2 }} // durée de l'animation
+          >
             <Navbar />
             {children}
-          </>
+          </motion.div>
         )}
         <TanStackDevtools
           config={{
