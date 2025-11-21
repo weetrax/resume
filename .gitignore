@@ -1,0 +1,34 @@
+# Node
+node_modules/
+.pnp/
+.pnp.js
+
+# Vite build / cache
+/dist/
+.vite/
+node_modules/.vite/
+
+# Environment files (may contain secrets)
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build / coverage / caches
+coverage/
+.cache/
+*.tsbuildinfo
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Misc
+*.local
