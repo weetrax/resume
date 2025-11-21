@@ -159,6 +159,14 @@ const projects: TProject[] = [
     ],
   },
   {
+    title: "GraphQL Generator",
+    description:
+      "Outil CLI pour générer les fichiers types et requêtes GraphQL à partir d'un schéma existant.",
+    imageUrl: "/gql.png",
+    projectUrl: "https://github.com/weetrax/gql",
+    codeTags: [{ id: "nextjs", label: "Codegen" }],
+  },
+  {
     title: "Tripsti",
     description:
       "Webapp de planification de voyages permettant aux utilisateurs de créer et gérer des itinéraires personnalisés.",
