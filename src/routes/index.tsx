@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Marquee } from "@/components/ui/marquee";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { Separator } from "@/components/ui/separator";
-import { TExperience, TProject } from "@/types";
+import { projects, experiences } from "@/data";
 import { createFileRoute } from "@tanstack/react-router";
 import { LinkedinIcon, MailIcon } from "lucide-react";
 
@@ -84,115 +84,6 @@ const icons = [
     name: "GraphQL",
     image:
       "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/graphql/graphql-plain.svg",
-  },
-];
-
-const experiences: TExperience[] = [
-  {
-    place: {
-      title: "Septeo Hospitality (ex Sequoiasoft) - Valbonne, FR",
-      href: "https://www.septeo.com/fr/metier/hospitality",
-    },
-    role: "Développeur Web Front-End",
-    period: "déc. 2021 - aujourd'hui",
-    description:
-      "Refonte complète de l’application de réservation Resalys en ReactJS, optimisée pour l’expérience utilisateur et les performances. Développement des canaux de réservation et de l’espace client avec des solutions évolutives, intégration avancée de l’API GraphQL avec Apollo, et création d’un Storybook pour documenter les composants et faciliter la maintenance et la collaboration.",
-    codeTags: [
-      { id: "react", label: "React" },
-      { id: "ts", label: "TypeScript" },
-      { id: "graphql", label: "GraphQL" },
-      { id: "node", label: "Node.js" },
-      { id: "tailwind", label: "TailwindCSS" },
-    ],
-  },
-  {
-    place: {
-      title: "bnetwork - Cannes, FR",
-      href: "https://www.bnetwork.com/",
-    },
-    role: "Développeur Full-Stack",
-    period: "sept. 2016 - oct. 2020",
-    description:
-      "Étude et optimisation du back-end, développement d’interfaces intuitives & responsive, intégration d’APIs tierces, solutions innovantes et collaboration directe avec les clients pour des services performants et adaptatifs.",
-    codeTags: [
-      { id: "c#", label: "C# / .NET" },
-      { id: "sqlserver", label: "SQL Server" },
-      { id: "js", label: "JavaScript" },
-      { id: "html", label: "HTML" },
-      { id: "css", label: "CSS" },
-      { id: "gmap_api", label: "API Google Maps" },
-      { id: "ds_api", label: "API DocuSign" },
-    ],
-  },
-  {
-    place: { title: "Westi - Cannes, FR", href: "" },
-    role: "(Stage) Développeur Full-Stack",
-    period: "janv. 2016 - mars 2016",
-    description:
-      "Développement d’une plateforme de partage de frais en ASP.NET, avec conception MySQL, front- et back-end complet, et intégration d’APIs externes (FlightStats, QPX Express) pour enrichir les fonctionnalités.",
-    codeTags: [
-      { id: "c#", label: "C# / .NET" },
-      { id: "mysql", label: "MySQL" },
-      { id: "js", label: "JavaScript" },
-      { id: "html", label: "HTML" },
-      { id: "css", label: "CSS" },
-      { id: "f_api", label: "API FlightStats" },
-      { id: "qpx_api", label: "API QPX Express" },
-    ],
-  },
-];
-
-const projects: TProject[] = [
-  {
-    title: "Resalys Booking Engine",
-    description:
-      "Webapp de réservation d’hébergements avec espace client développée pour Septeo Hospitality.",
-    imageUrl: "/resalys-booking-engine.png",
-    projectUrl: "https://resalys-booking-engine.vercel.app/",
-    codeTags: [
-      { id: "react", label: "React" },
-      { id: "ts", label: "TypeScript" },
-      { id: "graphql", label: "GraphQL" },
-      { id: "node", label: "Node.js" },
-      { id: "tailwind", label: "TailwindCSS" },
-      { id: "nextjs", label: "ShadCN" },
-    ],
-  },
-  {
-    title: "GraphQL Generator",
-    description:
-      "Outil CLI pour générer les fichiers types et requêtes GraphQL à partir d'un schéma existant.",
-    imageUrl: "/gql.png",
-    projectUrl: "https://github.com/weetrax/gql",
-    codeTags: [{ id: "nextjs", label: "Codegen" }],
-  },
-  {
-    title: "Tripsti",
-    description:
-      "Webapp de planification de voyages permettant aux utilisateurs de créer et gérer des itinéraires personnalisés.",
-    imageUrl: "/tripsti.png",
-    projectUrl: "https://next-tripsti-tawny.vercel.app/",
-    codeTags: [
-      { id: "nextjs", label: "NextJS" },
-      { id: "react", label: "React" },
-      { id: "ts", label: "TypeScript" },
-      { id: "mongodb", label: "MongoDB" },
-      { id: "tailwind", label: "TailwindCSS" },
-    ],
-  },
-  {
-    title: "AbsMedical (Projet universitaire)",
-    description:
-      "Application bureau à destination des médecins et établissements scolaire, permettant de justifier numériquement les absences d'un étudiant à travers une carte numérique avec puce RFID pour l'authentification de celui-ci.",
-    imageUrl: "/absmedical.png",
-    projectUrl: "https://github.com/weetrax/AbsMedicalWPF",
-    codeTags: [
-      { id: "c#", label: "C# / .NET" },
-      { id: "c#", label: "WPF" },
-      { id: "c#", label: "Entity Framework" },
-      { id: "mysql", label: "MySQL" },
-      { id: "css", label: "MahApps UI" },
-    ],
   },
 ];
 
@@ -274,7 +165,10 @@ function App() {
         </p>
         <div className="relative text-left">
           {experiences.map((experience) => (
-            <Experience experience={experience} />
+            <Experience
+              key={`exp_${experience.role}`}
+              experience={experience}
+            />
           ))}
         </div>
       </section>

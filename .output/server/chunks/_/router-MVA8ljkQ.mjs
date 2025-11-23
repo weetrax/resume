@@ -1,14 +1,12 @@
 import { createRouter, createRootRoute, createFileRoute, lazyRouteComponent, HeadContent, Scripts } from "@tanstack/react-router";
-import { jsxs, jsx, Fragment } from "react/jsx-runtime";
+import { jsxs, jsx } from "react/jsx-runtime";
+import { forwardRef, createElement, useState, useRef, useEffect, useMemo, Children, createContext, useContext } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { forwardRef, createElement, useState, useEffect, useRef, useMemo, Children, createContext, useContext } from "react";
-import { useSpring, motion, useInView } from "motion/react";
-import { c as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server.mjs";
-import fs from "node:fs";
-import { json } from "@tanstack/router-core/ssr/client";
+import { useSpring, motion as motion$1, useInView } from "motion/react";
+import { motion } from "framer-motion";
 const toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 const toCamelCase = (string) => string.replace(
   /^([A-Z])|[\s-_]+(\w)/g,
@@ -118,7 +116,6 @@ const __iconNode = [
   ["circle", { cx: "9", cy: "7", r: "4", key: "nufk8" }]
 ];
 const Users = createLucideIcon("users", __iconNode);
-const appCss = "/assets/styles-CRjE3c7I.css";
 function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
@@ -188,181 +185,6 @@ function Navbar() {
     item.label
   )) }) });
 }
-const SequenceContext = createContext(null);
-const useSequence = () => useContext(SequenceContext);
-const ItemIndexContext = createContext(null);
-const useItemIndex = () => useContext(ItemIndexContext);
-const AnimatedSpan = ({
-  children,
-  delay = 0,
-  className,
-  startOnView = false,
-  ...props
-}) => {
-  const elementRef = useRef(null);
-  const isInView = useInView(elementRef, {
-    amount: 0.3,
-    once: true
-  });
-  const sequence = useSequence();
-  const itemIndex = useItemIndex();
-  const [hasStarted, setHasStarted] = useState(false);
-  useEffect(() => {
-    if (!sequence || itemIndex === null) return;
-    if (!sequence.sequenceStarted) return;
-    if (hasStarted) return;
-    if (sequence.activeIndex === itemIndex) {
-      setHasStarted(true);
-    }
-  }, [sequence?.activeIndex, sequence?.sequenceStarted, hasStarted, itemIndex]);
-  const shouldAnimate = sequence ? hasStarted : startOnView ? isInView : true;
-  return /* @__PURE__ */ jsx(
-    motion.div,
-    {
-      ref: elementRef,
-      initial: { opacity: 0, y: -5 },
-      animate: shouldAnimate ? { opacity: 1, y: 0 } : { opacity: 0, y: -5 },
-      transition: { duration: 0.3, delay: sequence ? 0 : delay / 1e3 },
-      className: cn("grid text-sm font-normal tracking-tight", className),
-      onAnimationComplete: () => {
-        if (!sequence) return;
-        if (itemIndex === null) return;
-        sequence.completeItem(itemIndex);
-      },
-      ...props,
-      children
-    }
-  );
-};
-const TypingAnimation = ({
-  children,
-  className,
-  duration = 60,
-  delay = 0,
-  as: Component = "span",
-  startOnView = true,
-  ...props
-}) => {
-  if (typeof children !== "string") {
-    throw new Error("TypingAnimation: children must be a string. Received:");
-  }
-  const MotionComponent = useMemo(
-    () => motion.create(Component, {
-      forwardMotionProps: true
-    }),
-    [Component]
-  );
-  const [displayedText, setDisplayedText] = useState("");
-  const [started, setStarted] = useState(false);
-  const elementRef = useRef(null);
-  const isInView = useInView(elementRef, {
-    amount: 0.3,
-    once: true
-  });
-  const sequence = useSequence();
-  const itemIndex = useItemIndex();
-  useEffect(() => {
-    if (sequence && itemIndex !== null) {
-      if (!sequence.sequenceStarted) return;
-      if (started) return;
-      if (sequence.activeIndex === itemIndex) {
-        setStarted(true);
-      }
-      return;
-    }
-    if (!startOnView) {
-      const startTimeout2 = setTimeout(() => setStarted(true), delay);
-      return () => clearTimeout(startTimeout2);
-    }
-    if (!isInView) return;
-    const startTimeout = setTimeout(() => setStarted(true), delay);
-    return () => clearTimeout(startTimeout);
-  }, [
-    delay,
-    startOnView,
-    isInView,
-    started,
-    sequence?.activeIndex,
-    sequence?.sequenceStarted,
-    itemIndex
-  ]);
-  useEffect(() => {
-    if (!started) return;
-    let i = 0;
-    const typingEffect = setInterval(() => {
-      if (i < children.length) {
-        setDisplayedText(children.substring(0, i + 1));
-        i++;
-      } else {
-        clearInterval(typingEffect);
-        if (sequence && itemIndex !== null) {
-          sequence.completeItem(itemIndex);
-        }
-      }
-    }, duration);
-    return () => {
-      clearInterval(typingEffect);
-    };
-  }, [children, duration, started]);
-  return /* @__PURE__ */ jsx(
-    MotionComponent,
-    {
-      ref: elementRef,
-      className: cn("text-sm font-normal tracking-tight", className),
-      ...props,
-      children: displayedText
-    }
-  );
-};
-const Terminal = ({
-  children,
-  className,
-  sequence = true,
-  startOnView = true
-}) => {
-  const containerRef = useRef(null);
-  const isInView = useInView(containerRef, {
-    amount: 0.3,
-    once: true
-  });
-  const [activeIndex, setActiveIndex] = useState(0);
-  const sequenceHasStarted = sequence ? !startOnView || isInView : false;
-  const contextValue = useMemo(() => {
-    if (!sequence) return null;
-    return {
-      completeItem: (index) => {
-        setActiveIndex((current) => index === current ? current + 1 : current);
-      },
-      activeIndex,
-      sequenceStarted: sequenceHasStarted
-    };
-  }, [sequence, activeIndex, sequenceHasStarted]);
-  const wrappedChildren = useMemo(() => {
-    if (!sequence) return children;
-    const array = Children.toArray(children);
-    return array.map((child, index) => /* @__PURE__ */ jsx(ItemIndexContext.Provider, { value: index, children: child }, index));
-  }, [children, sequence]);
-  const content = /* @__PURE__ */ jsxs(
-    "div",
-    {
-      ref: containerRef,
-      className: cn(
-        "border-border bg-background z-0 h-full max-h-[400px] w-full max-w-lg rounded-xl border",
-        className
-      ),
-      children: [
-        /* @__PURE__ */ jsx("div", { className: "border-border flex flex-col gap-y-2 border-b p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-row gap-x-2", children: [
-          /* @__PURE__ */ jsx("div", { className: "h-2 w-2 rounded-full bg-red-500" }),
-          /* @__PURE__ */ jsx("div", { className: "h-2 w-2 rounded-full bg-yellow-500" }),
-          /* @__PURE__ */ jsx("div", { className: "h-2 w-2 rounded-full bg-green-500" })
-        ] }) }),
-        /* @__PURE__ */ jsx("pre", { className: "p-4", children: /* @__PURE__ */ jsx("code", { className: "grid gap-y-1 overflow-auto", children: wrappedChildren }) })
-      ]
-    }
-  );
-  if (!sequence) return content;
-  return /* @__PURE__ */ jsx(SequenceContext.Provider, { value: contextValue, children: content });
-};
 const DefaultCursorSVG = () => {
   return /* @__PURE__ */ jsxs(
     "svg",
@@ -528,7 +350,7 @@ function SmoothCursor({
     };
   }, [cursorX, cursorY, rotation, scale]);
   return /* @__PURE__ */ jsx(
-    motion.div,
+    motion$1.div,
     {
       style: {
         position: "fixed",
@@ -553,7 +375,211 @@ function SmoothCursor({
     }
   );
 }
-const Route$8 = createRootRoute({
+const appCss = "/assets/styles-o_OADm8d.css";
+const SequenceContext = createContext(null);
+const useSequence = () => useContext(SequenceContext);
+const ItemIndexContext = createContext(null);
+const useItemIndex = () => useContext(ItemIndexContext);
+const AnimatedSpan = ({
+  children,
+  delay = 0,
+  className,
+  startOnView = false,
+  ...props
+}) => {
+  const elementRef = useRef(null);
+  const isInView = useInView(elementRef, {
+    amount: 0.3,
+    once: true
+  });
+  const sequence = useSequence();
+  const itemIndex = useItemIndex();
+  const [hasStarted, setHasStarted] = useState(false);
+  useEffect(() => {
+    if (!sequence || itemIndex === null) return;
+    if (!sequence.sequenceStarted) return;
+    if (hasStarted) return;
+    if (sequence.activeIndex === itemIndex) {
+      setHasStarted(true);
+    }
+  }, [sequence?.activeIndex, sequence?.sequenceStarted, hasStarted, itemIndex]);
+  const shouldAnimate = sequence ? hasStarted : startOnView ? isInView : true;
+  return /* @__PURE__ */ jsx(
+    motion$1.div,
+    {
+      ref: elementRef,
+      initial: { opacity: 0, y: -5 },
+      animate: shouldAnimate ? { opacity: 1, y: 0 } : { opacity: 0, y: -5 },
+      transition: { duration: 0.3, delay: sequence ? 0 : delay / 1e3 },
+      className: cn("grid text-sm font-normal tracking-tight", className),
+      onAnimationComplete: () => {
+        if (!sequence) return;
+        if (itemIndex === null) return;
+        sequence.completeItem(itemIndex);
+      },
+      ...props,
+      children
+    }
+  );
+};
+const TypingAnimation = ({
+  children,
+  className,
+  duration = 60,
+  delay = 0,
+  as: Component = "span",
+  startOnView = true,
+  ...props
+}) => {
+  if (typeof children !== "string") {
+    throw new Error("TypingAnimation: children must be a string.");
+  }
+  const MotionComponent = useMemo(
+    () => motion$1.create(Component, {
+      forwardMotionProps: true
+    }),
+    [Component]
+  );
+  const [displayedText, setDisplayedText] = useState("");
+  const [started, setStarted] = useState(false);
+  const elementRef = useRef(null);
+  const isInView = useInView(elementRef, {
+    amount: 0.3,
+    once: true
+  });
+  const sequence = useSequence();
+  const itemIndex = useItemIndex();
+  useEffect(() => {
+    if (sequence && itemIndex !== null) {
+      if (!sequence.sequenceStarted) return;
+      if (started) return;
+      if (sequence.activeIndex === itemIndex) {
+        setStarted(true);
+      }
+      return;
+    }
+    if (!startOnView) {
+      const t2 = setTimeout(() => setStarted(true), delay);
+      return () => clearTimeout(t2);
+    }
+    if (!isInView) return;
+    const t = setTimeout(() => setStarted(true), delay);
+    return () => clearTimeout(t);
+  }, [
+    delay,
+    startOnView,
+    isInView,
+    started,
+    sequence?.activeIndex,
+    sequence?.sequenceStarted,
+    itemIndex
+  ]);
+  useEffect(() => {
+    if (!started) return;
+    let i = 0;
+    const typing = setInterval(() => {
+      if (i < children.length) {
+        setDisplayedText(children.substring(0, i + 1));
+        i++;
+      } else {
+        clearInterval(typing);
+        if (sequence && itemIndex !== null) {
+          sequence.completeItem(itemIndex);
+        }
+      }
+    }, duration);
+    return () => clearInterval(typing);
+  }, [children, duration, started]);
+  return /* @__PURE__ */ jsx(
+    MotionComponent,
+    {
+      ref: elementRef,
+      className: cn("text-sm font-normal tracking-tight", className),
+      ...props,
+      children: displayedText
+    }
+  );
+};
+const Terminal = ({
+  children,
+  className,
+  sequence = true,
+  startOnView = true,
+  onCompleted
+}) => {
+  const containerRef = useRef(null);
+  const isInView = useInView(containerRef, {
+    amount: 0.3,
+    once: true
+  });
+  const childrenArray = useMemo(() => Children.toArray(children), [children]);
+  const totalItems = childrenArray.length;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const sequenceHasStarted = sequence ? !startOnView || isInView : false;
+  useEffect(() => {
+    if (!sequence) return;
+    if (!sequenceHasStarted) return;
+    if (activeIndex >= totalItems) {
+      onCompleted?.();
+    }
+  }, [activeIndex, totalItems, sequence, sequenceHasStarted, onCompleted]);
+  const contextValue = useMemo(() => {
+    if (!sequence) return null;
+    return {
+      completeItem: (index) => {
+        setActiveIndex(
+          (current) => index === current ? current + 1 : current
+        );
+      },
+      activeIndex,
+      sequenceStarted: sequenceHasStarted
+    };
+  }, [sequence, activeIndex, sequenceHasStarted]);
+  const wrappedChildren = useMemo(() => {
+    if (!sequence) return children;
+    return childrenArray.map((child, index) => /* @__PURE__ */ jsx(ItemIndexContext.Provider, { value: index, children: child }, index));
+  }, [sequence, childrenArray]);
+  const content = /* @__PURE__ */ jsxs(
+    "div",
+    {
+      ref: containerRef,
+      className: cn(
+        "border-border bg-background z-0 h-full max-h-[400px] w-full max-w-lg rounded-xl border",
+        className
+      ),
+      children: [
+        /* @__PURE__ */ jsx("div", { className: "border-border flex flex-col gap-y-2 border-b p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-row gap-x-2", children: [
+          /* @__PURE__ */ jsx("div", { className: "h-2 w-2 rounded-full bg-red-500" }),
+          /* @__PURE__ */ jsx("div", { className: "h-2 w-2 rounded-full bg-yellow-500" }),
+          /* @__PURE__ */ jsx("div", { className: "h-2 w-2 rounded-full bg-green-500" })
+        ] }) }),
+        /* @__PURE__ */ jsx("pre", { className: "p-4", children: /* @__PURE__ */ jsx("code", { className: "grid gap-y-1 overflow-auto", children: wrappedChildren }) })
+      ]
+    }
+  );
+  if (!sequence) return content;
+  return /* @__PURE__ */ jsx(SequenceContext.Provider, { value: contextValue, children: content });
+};
+function LoadingScreen({ onComplete }) {
+  return /* @__PURE__ */ jsx("div", { className: "flex min-h-screen justify-center items-center", children: /* @__PURE__ */ jsxs(Terminal, { onCompleted: onComplete, children: [
+    /* @__PURE__ */ jsx(TypingAnimation, { children: "> npx install stefanomartines@portfolio --latest" }),
+    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Installation du portfolio ████████████ 100%" }),
+    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Installation de React, TypeScript, Tailwind CSS…" }),
+    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Configuration de Tailwind CSS…" }),
+    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Configuration du registre…" }),
+    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Installation des dépendances…" }),
+    /* @__PURE__ */ jsxs(AnimatedSpan, { className: "text-blue-500", children: [
+      /* @__PURE__ */ jsx("span", { children: "ℹ 3 fichiers mis à jour:" }),
+      /* @__PURE__ */ jsx("span", { className: "pl-2", children: "- lib/competences.ts" }),
+      /* @__PURE__ */ jsx("span", { className: "pl-2", children: "- data/experiences.ts" }),
+      /* @__PURE__ */ jsx("span", { className: "pl-2", children: "- data/projects.ts" })
+    ] }),
+    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Compilation du projet en cours…" }),
+    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ 0 erreur et 0 avertissement" }),
+    /* @__PURE__ */ jsx(TypingAnimation, { className: "text-muted-foreground", children: "✓ Portfolio prêt ! Lancement en cours…" })
+  ] }) });
+}
+const Route$1 = createRootRoute({
   head: () => ({
     meta: [
       {
@@ -577,195 +603,40 @@ const Route$8 = createRootRoute({
   shellComponent: RootDocument
 });
 function RootDocument({ children }) {
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 9200);
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, []);
+  const [loading, setLoading] = useState(process.env.NODE_ENV === "production");
   return /* @__PURE__ */ jsxs("html", { lang: "en", children: [
     /* @__PURE__ */ jsx("head", { children: /* @__PURE__ */ jsx(HeadContent, {}) }),
     /* @__PURE__ */ jsxs("body", { children: [
       /* @__PURE__ */ jsx(SmoothCursor, {}),
-      loading ? /* @__PURE__ */ jsx(LoadingScreen, {}) : /* @__PURE__ */ jsxs(Fragment, { children: [
-        /* @__PURE__ */ jsx(Navbar, {}),
-        children
-      ] }),
+      loading ? /* @__PURE__ */ jsx(LoadingScreen, { onComplete: () => setLoading(false) }) : /* @__PURE__ */ jsxs(
+        motion.div,
+        {
+          initial: { opacity: 0 },
+          animate: { opacity: 1 },
+          transition: { duration: 2 },
+          children: [
+            /* @__PURE__ */ jsx(Navbar, {}),
+            children
+          ]
+        }
+      ),
       /* @__PURE__ */ jsx(Scripts, {})
     ] })
   ] });
 }
-function LoadingScreen() {
-  return /* @__PURE__ */ jsx("div", { className: "flex min-h-screen justify-center items-center", children: /* @__PURE__ */ jsxs(Terminal, { children: [
-    /* @__PURE__ */ jsx(TypingAnimation, { children: "> npm install stefanomartines@portfolio --latest" }),
-    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Preflight checks." }),
-    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Verifying framework." }),
-    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Validating Tailwind CSS." }),
-    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Validating import alias." }),
-    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Writing components.json." }),
-    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Checking registry." }),
-    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Updating tailwind.config.ts" }),
-    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Updating app/globals.css" }),
-    /* @__PURE__ */ jsx(AnimatedSpan, { className: "text-green-500", children: "✔ Installing dependencies." }),
-    /* @__PURE__ */ jsxs(AnimatedSpan, { className: "text-blue-500", children: [
-      /* @__PURE__ */ jsx("span", { children: "ℹ Updated 1 file:" }),
-      /* @__PURE__ */ jsx("span", { className: "pl-2", children: "- lib/skills.ts" })
-    ] }),
-    /* @__PURE__ */ jsx(TypingAnimation, { className: "text-muted-foreground", children: "Success! Project initialization completed." })
-  ] }) });
-}
-const $$splitComponentImporter$6 = () => import("./index-eHd9_aqa.mjs");
-const Route$7 = createFileRoute("/")({
-  component: lazyRouteComponent($$splitComponentImporter$6, "component")
+const $$splitComponentImporter = () => import("./index-C0e1c4cA.mjs");
+const Route = createFileRoute("/")({
+  component: lazyRouteComponent($$splitComponentImporter, "component")
 });
-const createSsrRpc = (functionId) => {
-  const url = "/_serverFn/" + functionId;
-  const fn = async (...args) => {
-    const serverFn = await getServerFnById(functionId);
-    return serverFn(...args);
-  };
-  return Object.assign(fn, {
-    url,
-    functionId,
-    [TSS_SERVER_FUNCTION]: true
-  });
-};
-const $$splitComponentImporter$5 = () => import("./start.server-funcs-CWhA6jvK.mjs");
-const TODOS_FILE = "todos.json";
-async function readTodos() {
-  return JSON.parse(await fs.promises.readFile(TODOS_FILE, "utf-8").catch(() => JSON.stringify([{
-    id: 1,
-    name: "Get groceries"
-  }, {
-    id: 2,
-    name: "Buy a new phone"
-  }], null, 2)));
-}
-const getTodos_createServerFn_handler = createSsrRpc("c9d51a5243700889c80f82ed57a4ce74b25f188e5ebd534c9c64965dc44e8e8d");
-const getTodos = createServerFn({
-  method: "GET"
-}).handler(getTodos_createServerFn_handler, async () => await readTodos());
-const Route$6 = createFileRoute("/demo/start/server-funcs")({
-  component: lazyRouteComponent($$splitComponentImporter$5, "component"),
-  loader: async () => await getTodos()
-});
-const $$splitComponentImporter$4 = () => import("./start.api-request-DhPN1_Dc.mjs");
-const Route$5 = createFileRoute("/demo/start/api-request")({
-  component: lazyRouteComponent($$splitComponentImporter$4, "component")
-});
-const Route$4 = createFileRoute("/demo/api/names")({
-  server: {
-    handlers: {
-      GET: () => json(["Alice", "Bob", "Charlie"])
-    }
-  }
-});
-const $$splitComponentImporter$3 = () => import("./start.ssr.index-BmCCCK3g.mjs");
-const Route$3 = createFileRoute("/demo/start/ssr/")({
-  component: lazyRouteComponent($$splitComponentImporter$3, "component")
-});
-const $$splitComponentImporter$2 = () => import("./start.ssr.spa-mode-CD2VNxK8.mjs");
-const Route$2 = createFileRoute("/demo/start/ssr/spa-mode")({
-  ssr: false,
-  component: lazyRouteComponent($$splitComponentImporter$2, "component")
-});
-const getPunkSongs_createServerFn_handler = createSsrRpc("f74da881407a186b78a7af058df21dafb0126eb11e5a4d54fd322e8feb5038f1");
-const getPunkSongs = createServerFn({
-  method: "GET"
-}).handler(getPunkSongs_createServerFn_handler, async () => [{
-  id: 1,
-  name: "Teenage Dirtbag",
-  artist: "Wheatus"
-}, {
-  id: 2,
-  name: "Smells Like Teen Spirit",
-  artist: "Nirvana"
-}, {
-  id: 3,
-  name: "The Middle",
-  artist: "Jimmy Eat World"
-}, {
-  id: 4,
-  name: "My Own Worst Enemy",
-  artist: "Lit"
-}, {
-  id: 5,
-  name: "Fat Lip",
-  artist: "Sum 41"
-}, {
-  id: 6,
-  name: "All the Small Things",
-  artist: "blink-182"
-}, {
-  id: 7,
-  name: "Beverly Hills",
-  artist: "Weezer"
-}]);
-const $$splitComponentImporter$1 = () => import("./start.ssr.full-ssr-Dl4ayq8Q.mjs");
-const Route$1 = createFileRoute("/demo/start/ssr/full-ssr")({
-  component: lazyRouteComponent($$splitComponentImporter$1, "component"),
-  loader: async () => await getPunkSongs()
-});
-const $$splitComponentImporter = () => import("./start.ssr.data-only-Cllzugrr.mjs");
-const Route = createFileRoute("/demo/start/ssr/data-only")({
-  ssr: "data-only",
-  component: lazyRouteComponent($$splitComponentImporter, "component"),
-  loader: async () => await getPunkSongs()
-});
-const IndexRoute = Route$7.update({
+const IndexRoute = Route.update({
   id: "/",
   path: "/",
-  getParentRoute: () => Route$8
-});
-const DemoStartServerFuncsRoute = Route$6.update({
-  id: "/demo/start/server-funcs",
-  path: "/demo/start/server-funcs",
-  getParentRoute: () => Route$8
-});
-const DemoStartApiRequestRoute = Route$5.update({
-  id: "/demo/start/api-request",
-  path: "/demo/start/api-request",
-  getParentRoute: () => Route$8
-});
-const DemoApiNamesRoute = Route$4.update({
-  id: "/demo/api/names",
-  path: "/demo/api/names",
-  getParentRoute: () => Route$8
-});
-const DemoStartSsrIndexRoute = Route$3.update({
-  id: "/demo/start/ssr/",
-  path: "/demo/start/ssr/",
-  getParentRoute: () => Route$8
-});
-const DemoStartSsrSpaModeRoute = Route$2.update({
-  id: "/demo/start/ssr/spa-mode",
-  path: "/demo/start/ssr/spa-mode",
-  getParentRoute: () => Route$8
-});
-const DemoStartSsrFullSsrRoute = Route$1.update({
-  id: "/demo/start/ssr/full-ssr",
-  path: "/demo/start/ssr/full-ssr",
-  getParentRoute: () => Route$8
-});
-const DemoStartSsrDataOnlyRoute = Route.update({
-  id: "/demo/start/ssr/data-only",
-  path: "/demo/start/ssr/data-only",
-  getParentRoute: () => Route$8
+  getParentRoute: () => Route$1
 });
 const rootRouteChildren = {
-  IndexRoute,
-  DemoApiNamesRoute,
-  DemoStartApiRequestRoute,
-  DemoStartServerFuncsRoute,
-  DemoStartSsrDataOnlyRoute,
-  DemoStartSsrFullSsrRoute,
-  DemoStartSsrSpaModeRoute,
-  DemoStartSsrIndexRoute
+  IndexRoute
 };
-const routeTree = Route$8._addFileChildren(rootRouteChildren)._addFileTypes();
+const routeTree = Route$1._addFileChildren(rootRouteChildren)._addFileTypes();
 const getRouter = () => {
   const router2 = createRouter({
     routeTree,
@@ -778,27 +649,17 @@ const router = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProper
   __proto__: null,
   getRouter
 }, Symbol.toStringTag, { value: "Module" }));
-const routerBZQW_lao = /* @__PURE__ */ Object.freeze({
+const routerMVA8ljkQ = /* @__PURE__ */ Object.freeze({
   __proto__: null,
   B: Button,
-  R: Route$6,
-  a: createSsrRpc,
-  b: Route$1,
   c: cn,
-  d: Route,
-  g: getPunkSongs,
   r: router
 });
 export {
   Button as B,
   Mail as M,
-  Route$6 as R,
   cn as a,
   Building2 as b,
   createLucideIcon as c,
-  createSsrRpc as d,
-  Route$1 as e,
-  Route as f,
-  getPunkSongs as g,
-  routerBZQW_lao as r
+  routerMVA8ljkQ as r
 };

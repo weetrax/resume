@@ -1,6 +1,7 @@
 import { TExperience } from "@/types";
 import { CodeTag } from "./ui/code-tag";
 import { Building2Icon, CalendarIcon, Link } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function Experience({
   experience: { place, role, period, description, codeTags },
@@ -8,7 +9,17 @@ export function Experience({
   experience: TExperience;
 }) {
   return (
-    <div className="not-last:pb-12 relative pl-8 [&:not(:last-child)]:pb-10">
+    <motion.div
+      initial={{ opacity: 0, y: 60 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{
+        duration: 0.7,
+        delay: 0.2,
+        ease: "easeOut",
+      }}
+      className="not-last:pb-12 relative pl-8 [&:not(:last-child)]:pb-10"
+    >
       <div className="bg-muted absolute left-0 top-2.5 h-full w-[2px] group-first:top-6 group-first:h-[calc(100%-24px)]">
         <div className="border-primary bg-background absolute left-[-5px] top-0 size-3 rounded-full border-2"></div>
       </div>
@@ -40,6 +51,6 @@ export function Experience({
           ))}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
